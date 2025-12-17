@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>防止锁屏工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: white;
+            color: #333;
+            height: 100vh;
+            display: block;
+        }
+
+        #app {
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 32px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: white;
+            margin-bottom: 32px;
+            font-weight: 600;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: calc(100% + 64px);
+            margin-top: -32px;
+            margin-left: -32px;
+            margin-right: -32px;
+            box-sizing: border-box;
+        }
+
+        .status-section {
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+
+        .status {
+            font-size: 20px;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 0;
+            display: inline-block;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .status.running {
+            background-color: #4ade80;
+            color: white;
+            border: 2px solid #22c55e;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status.stopped {
+            background-color: #fca5a5;
+            color: white;
+            border: 2px solid #ef4444;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-info {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .interval-section {
+            margin-bottom: 32px;
+            flex-shrink: 0;
+        }
+
+        .interval-section label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #374151;
+        }
+
+        .interval-input {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        #interval {
+            width: 100px;
+            padding: 12px 16px;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 0;
+            text-align: center;
+            transition: all 0.3s;
+            background-color: white;
+        }
+
+        #interval:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .interval-unit {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .interval-hint {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.4;
+            margin-top: 8px;
+        }
+
+        .button-section {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+
+        button {
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        #startBtn {
+            background-color: #22c55e;
+            color: white;
+        }
+
+        #startBtn:hover:not(:disabled) {
+            background-color: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        #stopBtn {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        #stopBtn:hover:not(:disabled) {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .history-section {
+            margin-top: auto;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 150px;
+        }
+
+        .history-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #374151;
+        }
+
+        #history {
+            text-align: left;
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #f1f5f9;
+            padding: 16px;
+            border-radius: 0;
+            font-family: monospace;
+            font-size: 12px;
+            color: #374151;
+            min-height: 100px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .history-item {
+            margin-bottom: 6px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .time {
+            color: #9ca3af;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h1>防止锁屏工具</h1>
+    
+    <div class="status-section">
+        <div class="status" id="status">已停止</div>
+    </div>
+
+    <div class="interval-section">
+        <label for="interval">设置时间间隔</label>
+        <div class="interval-input">
+            <input type="number" id="interval" min="1" max="300" value="60"/>
+            <span class="interval-unit">秒</span>
+        </div>
+    </div>
+
+    <div class="button-section">
+        <button id="startBtn" onclick="startPreventLock()">启动</button>
+        <button id="stopBtn" onclick="stopPreventLock()" disabled>停止</button>
+    </div>
+
+    <div class="history-section">
+        <h3>操作记录</h3>
+        <div id="history"></div>
+    </div>
+</div>
+<script src="./src/main.js" type="module"></script>
+</body>
+</html>

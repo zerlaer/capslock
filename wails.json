@@ -1,0 +1,23 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "prevent-lock",
+  "outputfilename": "toolkit",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "zerlaer",
+    "email": "zerlaer@hotmail。com"
+  },
+  "windows": {
+        "title": "防止锁屏工具",
+        "width": 464,
+        "height": 600,
+        "resizable": false,
+        "fullscreen": false,
+        "frameless": false,
+        "position": "center",
+        "icon": "logo.ico"
+    }
+}
