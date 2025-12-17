@@ -52,7 +52,7 @@ func (a *App) StartPreventLock() string {
 		}
 	}()
 
-	return "防止锁屏功能已启动"
+	return "防锁屏功能已启动"
 }
 
 // StopPreventLock stops the lock prevention
@@ -64,7 +64,7 @@ func (a *App) StopPreventLock() string {
 	a.ticker.Stop()
 	a.isRunning = false
 
-	return "防止锁屏功能已停止"
+	return "防锁屏功能已停止"
 }
 
 // GetStatus returns the current status
