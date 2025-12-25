@@ -19,7 +19,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:  "Caps Lock",
 		Width:  400,
-		Height: 640,
+		Height: 800,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

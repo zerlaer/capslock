@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 
 	"github.com/go-vgo/robotgo"
@@ -15,6 +16,11 @@ type App struct {
 	isRunning bool
 	ticker   *time.Ticker
 	interval int // 时间间隔，单位：秒
+	
+	// 定时关机相关
+	isShuttingDown bool
+	shutdownTimer  *time.Timer
+	shutdownTime   int // 关机时间，单位：秒
 }
 
 // NewApp creates a new App application struct
@@ -70,8 +76,10 @@ func (a *App) StopPreventLock() string {
 // GetStatus returns the current status
 func (a *App) GetStatus() map[string]interface{} {
 	return map[string]interface{}{
-		"running":  a.isRunning,
-		"interval": a.interval,
+		"running":       a.isRunning,
+		"interval":      a.interval,
+		"isShuttingDown": a.isShuttingDown,
+		"shutdownTime":   a.shutdownTime,
 	}
 }
 
@@ -91,4 +99,57 @@ func (a *App) SetInterval(seconds int) string {
 
 	a.interval = seconds
 	return fmt.Sprintf("时间间隔已设置为 %d 秒", seconds)
+}
+
+// SetShutdownTime sets the shutdown time
+func (a *App) SetShutdownTime(seconds int) string {
+	if seconds <= 0 {
+		return "关机时间必须大于0"
+	}
+
+	a.shutdownTime = seconds
+	return fmt.Sprintf("关机时间已设置为 %d 秒", seconds)
+}
+
+// StartShutdownTimer starts the shutdown timer
+func (a *App) StartShutdownTimer() string {
+	if a.isShuttingDown {
+		return "定时关机已经在运行中"
+	}
+
+	if a.shutdownTime <= 0 {
+		return "请先设置关机时间"
+	}
+
+	// 创建关机定时器
+	a.shutdownTimer = time.NewTimer(time.Duration(a.shutdownTime) * time.Second)
+	a.isShuttingDown = true
+
+	go func() {
+		<-a.shutdownTimer.C
+		log.Printf("定时关机时间到，执行关机操作")
+		
+		// 执行关机命令（Windows）
+		cmd := exec.Command("shutdown", "/s", "/t", "0")
+		if err := cmd.Run(); err != nil {
+			log.Printf("执行关机命令失败: %v", err)
+		}
+		log.Printf("定时关机时间到，执行关机操作")
+		
+		a.isShuttingDown = false
+	}()
+
+	return fmt.Sprintf("定时关机已启动，将在 %d 秒后关机", a.shutdownTime)
+}
+
+// CancelShutdownTimer cancels the shutdown timer
+func (a *App) CancelShutdownTimer() string {
+	if !a.isShuttingDown {
+		return "没有正在执行的定时关机"
+	}
+
+	a.shutdownTimer.Stop()
+	a.isShuttingDown = false
+
+	return "定时关机已取消"
 }
